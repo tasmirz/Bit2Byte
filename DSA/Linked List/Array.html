@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Array Simulation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center p-6">
+    <h1 class="text-2xl font-bold mb-4">Array Simulation</h1>
+    <div id="creationPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <input placeholder="Array Size" type="number" id="arraySize" min="1" class="flex-1 p-2 rounded text-gray-800">
+            <button onclick="createTable()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-full max-w-md mb-6">
+        <div class="tabs flex mb-4">
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('add')">
+                <i class="fas fa-plus-circle"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('remove')">
+                <i class="fas fa-minus-circle"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('search')">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('resize')">
+                <i class="fas fa-expand-arrows-alt"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700" onclick="resetArray()">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+        <div id="add" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <input type="text" id="value" placeholder="Value" class="flex-1 p-2 rounded text-gray-800">
+            </div>
+            <div class="flex items-center mb-2">
+                <button onclick="appendItem()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2"
+                    style="flex-basis: 40%;">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                <input type="number" id="position" min="0" placeholder="Position" class="flex-1 p-2 rounded text-gray-800"
+                    style="flex-basis: 40%;">
+                <button onclick="addItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700"
+                    style="flex-basis: 20%;">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+            </div>
+        </div>
+        <div id="remove" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+            <button onclick="popBack()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2"
+                style="flex-basis: 40%;">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            <input type="number" id="positionE" min="0" placeholder="Position" class="flex-1 p-2 rounded text-gray-800"
+                style="flex-basis: 40%;">
+            <button onclick="removeItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700"
+                style="flex-basis: 20%;">
+                <i class="fas fa-minus-circle"></i>
+            </button>
+            </div>
+        </div>
+        <div id="search" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <input type="text" id="searchValue" placeholder="Search Value" class="flex-1 p-2 rounded text-gray-800" style="flex-basis: 80%;">
+                <button onclick="searchItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700" style="flex-basis: 20%;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div id="resize" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <input type="number" id="newArraySize" min="1" placeholder="New Array Size" class="flex-1 p-2 rounded text-gray-800">
+                <button onclick="copyArray()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <table id="arrayTable" class="w-full max-w-md bg-white shadow-lg rounded-lg mb-6">
+        <thead>
+            <tr class="bg-gray-800 text-white">
+                <th class="p-4 text-center">Index</th>
+                <th class="p-4 text-center">Memory Location</th>
+                <th class="p-4 text-center">Data</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script>
+        let array = [];
+        let memoryLocation = 1000;
+        let currentIndex = 0;
+        const highlightColors = {
+            yellow: '#fefcbf',
+            orange: '#fbd38d',
+            green: '#c6f6d5',
+            blue: '#bee3f8',
+            red: '#feb2b2'
+        };
+        const delay = 500; // Control the setTimeout delay
+
+        function createTable() {
+            const size = document.getElementById('arraySize').value;
+            const tableBody = document.getElementById('arrayTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            array = new Array(parseInt(size)).fill(null);
+            currentIndex = -1;
+            for (let i = 0; i < array.length; i++) {
+                const row = tableBody.insertRow();
+                const indexCell = row.insertCell(0);
+                indexCell.innerText = i;
+                indexCell.classList.add('text-center', 'p-4');
+
+                const memoryCell = row.insertCell(1);
+                memoryCell.innerText = memoryLocation++;
+                memoryCell.classList.add('text-center', 'p-4');
+
+                const dataCell = row.insertCell(2);
+                dataCell.innerText = '';
+                dataCell.contentEditable = true;
+                dataCell.classList.add('text-center', 'p-4');
+                dataCell.addEventListener('input', () => {
+                    array[i] = dataCell.innerText;
+                    updateCurrentIndex();
+                });
+            }
+            document.getElementById('creationPopup').style.display = 'none';
+        }
+
+        function updateTable() {
+            const tableBody = document.getElementById('arrayTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            for (let i = 0; i < array.length; i++) {
+                const row = tableBody.insertRow();
+                const indexCell = row.insertCell(0);
+                indexCell.innerText = i;
+                indexCell.classList.add('text-center', 'p-4');
+
+                const memoryCell = row.insertCell(1);
+                memoryCell.innerText = 1000 + i;
+                memoryCell.classList.add('text-center', 'p-4');
+
+                const dataCell = row.insertCell(2);
+                dataCell.innerText = array[i] !== null ? array[i] : '';
+                dataCell.contentEditable = true;
+                dataCell.classList.add('text-center', 'p-4');
+                dataCell.addEventListener('input', () => {
+                    array[i] = dataCell.innerText;
+                    updateCurrentIndex();
+                });
+            }
+        }
+
+        function updateCurrentIndex() {
+            currentIndex = array.lastIndexOf(array.find(item => item !== null));
+        }
+
+        async function addItem() {
+            const pos = parseInt(document.getElementById('position').value);
+            const val = document.getElementById('value').value;
+
+            if (pos < 0 || pos >= array.length) {
+                alert("Invalid position");
+                return;
+            }
+
+            for (let i = array.length - 1; i > pos; i--) {
+                array[i] = array[i - 1];
+                highlightRow(i, 'yellow');
+                highlightRow(i - 1, 'orange');
+                updateTable();
+                highlightRow(i, 'yellow');
+                highlightRow(i - 1, 'orange');
+                await new Promise(r => setTimeout(r, delay));
+            }
+
+            array[pos] = val;
+            updateTable();
+            await new Promise(r => setTimeout(r, delay));
+            highlightRow(pos, 'green');
+            updateCurrentIndex();
+        }
+
+        function highlightRow(pos, color) {
+            const tableBody = document.getElementById('arrayTable').getElementsByTagName('tbody')[0];
+            const row = tableBody.rows[pos];
+            row.style.transition = "background-color 0.5s ease";
+            row.style.backgroundColor = highlightColors[color];
+            setTimeout(() => {
+                row.style.backgroundColor = "";
+            }, delay);
+        }
+
+        async function removeItem() {
+            const pos = parseInt(document.getElementById('positionE').value);
+            if (pos < 0 || pos >= array.length) {
+                alert("Invalid position");
+                return;
+            }
+            console.log(pos)
+            for (let i = pos; i < array.length - 1; i++) {
+                highlightRow(i, 'yellow');
+                highlightRow(i - 1, 'orange');
+                array[i] = array[i + 1];
+                updateTable();
+                highlightRow(i, 'yellow');
+                highlightRow(i - 1, 'orange');
+                await new Promise(r => setTimeout(r, delay));
+            }
+            array[array.length - 1] = '';
+            updateTable();
+            updateCurrentIndex();
+        }
+
+        async function searchItem() {
+            const target = document.getElementById('searchValue').value;
+            let found = false;
+
+            for (let i = 0; i < array.length; i++) {
+                highlightRow(i, 'yellow');
+                await new Promise(r => setTimeout(r, delay));
+                if (array[i] === target) {
+                    highlightRow(i, 'blue');
+                    await new Promise(r => setTimeout(r, delay));
+                    alert(`Item found at index ${i}`);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                alert("Item not found");
+            }
+        }
+
+        function copyArray() {
+            const newSize = parseInt(document.getElementById('newArraySize').value);
+            const size = newSize;
+            if (isNaN(newSize) || newSize < 1) {
+                alert("Invalid new array size");
+                return;
+            }
+            const tableBody = document.getElementById('arrayTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+            
+            newArray = new Array(parseInt(size)).fill(null);
+            array = newArray;
+            currentIndex = -1;
+            for (let i = 0; i < array.length; i++) {
+                const row = tableBody.insertRow();
+                const indexCell = row.insertCell(0);
+                indexCell.innerText = i;
+                indexCell.classList.add('text-center', 'p-4');
+
+                const memoryCell = row.insertCell(1);
+                memoryCell.innerText = memoryLocation++;
+                memoryCell.classList.add('text-center', 'p-4');
+
+                const dataCell = row.insertCell(2);
+                dataCell.innerText = '';
+                dataCell.contentEditable = true;
+                dataCell.classList.add('text-center', 'p-4');
+                dataCell.addEventListener('input', () => {
+                    array[i] = dataCell.innerText;
+                    updateCurrentIndex();
+                });
+            }
+            for (let i = 0; i < Math.min(array.length, newSize); i++) {
+                newArray[i] = array[i];
+            }
+            
+            memoryLocation++;
+            updateTable();
+            updateCurrentIndex();
+            alert(`Array copied and resized to ${newSize}`);
+        }
+
+        async function appendItem() {
+            const val = document.getElementById('value').value;
+            if (currentIndex < array.length - 1) {
+                array[++currentIndex] = val;
+                updateTable();
+                await new Promise(r => setTimeout(r, delay));
+                highlightRow(currentIndex, 'green');
+            } else {
+                alert("Array is full");
+            }
+        }
+
+        async function popBack() {
+            if (currentIndex >= 0) {
+                array[currentIndex] = null;
+                updateTable();
+                await new Promise(r => setTimeout(r, delay));
+                highlightRow(currentIndex, 'red');
+                currentIndex--;
+            } else {
+                alert("Array is empty");
+            }
+        }
+
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        function resetArray() {
+            document.getElementById('creationPopup').style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>
