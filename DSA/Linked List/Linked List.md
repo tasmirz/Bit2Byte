@@ -273,6 +273,7 @@ Imagine saving a size in a sequentially filled file system. To maximize performa
 Arrays can be chunked. Instead of resizing a new next node can be added to improve cache locality without requiring copying. this can be used for ranged counting sort.
 ### Chained Tasks
 ![Pasted image 20241102234804](assets/Pasted%20image%2020241102234804.png)
+Task : In this example, O(1) insertion at random positions are possible - find how
 #### CRON Like
 ![chainedtasks.excalidraw](assets/chainedtasks.excalidraw.svg)
 #### State Management
@@ -287,5 +288,10 @@ Arrays can be chunked. Instead of resizing a new next node can be added to impro
 * Extra space taken
 * Slow random access
 * Insertion deletion can slower than array
+### Binary Search on Linked list?
+Yes possible with skiplist
 ## ToDo
 - [ ] Linked list Merge - in simulator
+
+
+Snake game -> move tail to head

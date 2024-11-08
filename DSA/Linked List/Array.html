@@ -38,40 +38,53 @@
             </button>
         </div>
         <div id="add" class="tab-content hidden">
+
             <div class="flex items-center mb-2">
                 <input type="text" id="value" placeholder="Value" class="flex-1 p-2 rounded text-gray-800">
             </div>
             <div class="flex items-center mb-2">
                 <button onclick="appendItem()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2"
-                    style="flex-basis: 40%;">
-                    <i class="fas fa-arrow-down"></i>
-                </button>
-                <input type="number" id="position" min="0" placeholder="Position" class="flex-1 p-2 rounded text-gray-800"
-                    style="flex-basis: 40%;">
-                <button onclick="addItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700"
-                    style="flex-basis: 20%;">
-                    <i class="fas fa-plus-circle"></i>
-                </button>
+                style="flex-basis: 40%;">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+            <input type="number" id="position" min="0" placeholder="Position" class="flex-1 p-2 rounded text-gray-800"
+            style="flex-basis: 40%;">
+            <button onclick="addItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700"
+            style="flex-basis: 20%;">
+            <i class="fas fa-plus-circle"></i>
+        </button>
             </div>
         </div>
         <div id="remove" class="tab-content hidden">
             <div class="flex items-center mb-2">
-            <button onclick="popBack()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2"
-                style="flex-basis: 40%;">
-                <i class="fas fa-arrow-up"></i>
-            </button>
-            <input type="number" id="positionE" min="0" placeholder="Position" class="flex-1 p-2 rounded text-gray-800"
-                style="flex-basis: 40%;">
-            <button onclick="removeItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700"
-                style="flex-basis: 20%;">
-                <i class="fas fa-minus-circle"></i>
-            </button>
+                <button onclick="popBack()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2"
+                    style="flex-basis: 40%;">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+                <input type="number" id="positionE" min="0" placeholder="Position" class="flex-1 p-2 rounded text-gray-800"
+                    style="flex-basis: 40%;">
+                <button onclick="removeItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700"
+                    style="flex-basis: 20%;">
+                    <i class="fas fa-minus-circle"></i>
+                </button>
             </div>
         </div>
         <div id="search" class="tab-content hidden">
             <div class="flex items-center mb-2">
                 <input type="text" id="searchValue" placeholder="Search Value" class="flex-1 p-2 rounded text-gray-800" style="flex-basis: 80%;">
                 <button onclick="searchItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700" style="flex-basis: 20%;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="flex items-center mb-2">
+                <input type="text" id="binarySearchValue" placeholder="Binary Search Value" class="flex-1 p-2 rounded text-gray-800" style="flex-basis: 80%;">
+                <button onclick="binarySearchItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700" style="flex-basis: 20%;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="flex items-center mb-2">
+                <input type="text" id="oneSidedBinarySearchValue" placeholder="One-Sided Binary Search Value" class="flex-1 p-2 rounded text-gray-800" style="flex-basis: 80%;">
+                <button onclick="oneSidedBinarySearchItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700" style="flex-basis: 20%;">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
@@ -235,6 +248,64 @@
                     alert(`Item found at index ${i}`);
                     found = true;
                     break;
+                }
+            }
+
+            if (!found) {
+                alert("Item not found");
+            }
+        }
+
+        async function binarySearchItem() {
+            const target = document.getElementById('binarySearchValue').value;
+            let left = 0;
+            let right = array.length - 1;
+            let found = false;
+
+            while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+                highlightRow(mid, 'yellow');
+                await new Promise(r => setTimeout(r, delay));
+
+                if (array[mid] === target) {
+                    highlightRow(mid, 'blue');
+                    await new Promise(r => setTimeout(r, delay));
+                    alert(`Item found at index ${mid}`);
+                    found = true;
+                    break;
+                } else if (array[mid] < target) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+
+            if (!found) {
+                alert("Item not found");
+            }
+        }
+
+        async function oneSidedBinarySearchItem() {
+            const target = document.getElementById('oneSidedBinarySearchValue').value;
+            let left = 0;
+            let right = array.length - 1;
+            let found = false;
+
+            while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+                highlightRow(mid, 'yellow');
+                await new Promise(r => setTimeout(r, delay));
+
+                if (array[mid] === target) {
+                    highlightRow(mid, 'blue');
+                    await new Promise(r => setTimeout(r, delay));
+                    alert(`Item found at index ${mid}`);
+                    found = true;
+                    break;
+                } else if (array[mid] < target) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
                 }
             }
 
