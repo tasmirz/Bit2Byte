@@ -257,7 +257,7 @@
         }
 
         async function binarySearchItem() {
-            const target = document.getElementById('binarySearchValue').value;
+            const target = parseInt(document.getElementById('binarySearchValue').value);
             let left = 0;
             let right = array.length - 1;
             let found = false;
@@ -286,27 +286,36 @@
         }
 
         async function oneSidedBinarySearchItem() {
-            const target = document.getElementById('oneSidedBinarySearchValue').value;
-            let left = 0;
-            let right = array.length - 1;
+            const target = parseInt(document.getElementById('oneSidedBinarySearchValue').value);
+            let n = array.length;
+            let lg = parseInt(Math.log(n - 1) / Math.log(2)) + 1;
+            let pos = 0;
             let found = false;
 
-            while (left <= right) {
-                const mid = Math.floor((left + right) / 2);
-                highlightRow(mid, 'yellow');
+            for (let i = lg; i >= 0; i--) {
+                highlightRow(pos, 'yellow');
                 await new Promise(r => setTimeout(r, delay));
 
-                if (array[mid] === target) {
-                    highlightRow(mid, 'blue');
+                if (array[pos] == target) {
+                    highlightRow(pos, 'blue');
                     await new Promise(r => setTimeout(r, delay));
-                    alert(`Item found at index ${mid}`);
+                    alert(`Item found at index ${pos}`);
                     found = true;
                     break;
-                } else if (array[mid] < target) {
-                    left = mid + 1;
-                } else {
-                    right = mid - 1;
                 }
+
+                let new_pos = pos | (1 << i);
+
+                if ((new_pos < n) && (array[new_pos] <= target)) {
+                    pos = new_pos;
+                }
+            }
+
+            if (!found && array[pos] == target) {
+                highlightRow(pos, 'blue');
+                await new Promise(r => setTimeout(r, delay));
+                alert(`Item found at index ${pos}`);
+                found = true;
             }
 
             if (!found) {

@@ -113,8 +113,8 @@
 
     <table id="heapTable" class="w-full max-w-md bg-white shadow-lg rounded-lg mb-6 table-fixed">
         <thead>
-            <tr class="bg-gray-800 text-white">
-                <th class="p-4 text-center">Index</th>
+            <tr id="indexRow" class="bg-gray-800 text-white">
+                
             </tr>
         </thead>
         <tbody>
@@ -134,17 +134,18 @@
             blue: '#bee3f8',
             red: '#feb2b2'
         };
-        const delay = 500; // Control the setTimeout delay
+        const delay = 1000; // Control the setTimeout delay
         let size=0;
         let  hsize=0;
         function createHeap() {
             size =parseInt( document.getElementById('heapSize').value);
             heapType = document.getElementById('heapType').value;
             const heapRow = document.getElementById('heapRow');
+            const indexRow = document.getElementById('indexRow');
             heapRow.innerHTML = '';
             heap = new Array(size).fill(null);
             for (let i = 0; i < heap.length; i++) {
-                const indexCell = heapRow.insertCell();
+                const indexCell = indexRow.insertCell();
                 indexCell.innerText = i;
                 indexCell.classList.add('text-center', 'p-4');
                 
@@ -231,34 +232,47 @@
             const value = parseInt(document.getElementById('value').value);
             if (isNaN(value)) return;
             heap[hsize++]=value;
-            let i = heap.length - 1;
+            let i = hsize - 1;
             if (heapType === 'max') {
                 while (i !== 0 && heap[Math.floor((i - 1) / 2)] < heap[i]) {
                     [heap[i], heap[Math.floor((i - 1) / 2)]] = [heap[Math.floor((i - 1) / 2)], heap[i]];
                     i = Math.floor((i - 1) / 2);
+                    updateTable();
+                    drawHeap();
+                    await new Promise(r => setTimeout(r, delay));
+                    await highlightRow(hsize-1, 'green');
                 }
             } else {
                 while (i !== 0 && heap[Math.floor((i - 1) / 2)] > heap[i]) {
                     [heap[i], heap[Math.floor((i - 1) / 2)]] = [heap[Math.floor((i - 1) / 2)], heap[i]];
                     i = Math.floor((i - 1) / 2);
+                    updateTable();
+                    drawHeap();
+                    await new Promise(r => setTimeout(r, delay));
+                    await highlightRow(hsize-1, 'green');
                 }
             }
             updateTable();
             drawHeap();
             await new Promise(r => setTimeout(r, delay));
-            highlightRow(heap.length - 1, 'green');
+            highlightRow(hsize-1, 'green');
         }
 
         async function deleteRoot() {
-            if (heap.length === 0) return;
-            heap[0] = heap.pop();
+            if (hsize === 0) return;
+            heap[0] = heap[--hsize];
+            heap[hsize] = null;
             let i = 0;
-            while (2 * i + 1 < heap.length) {
-                let j = 2 * i + 1;
-                if (j + 1 < heap.length && ((heapType === 'max' && heap[j] < heap[j + 1]) || (heapType === 'min' && heap[j] > heap[j + 1]))) j++;
-                if ((heapType === 'max' && heap[i] >= heap[j]) || (heapType === 'min' && heap[i] <= heap[j])) break;
-                [heap[i], heap[j]] = [heap[j], heap[i]];
-                i = j;
+            while (2 * i + 1 <= hsize) {
+            let j = 2 * i + 1;
+            if (j + 1 < hsize && ((heapType === 'max' && heap[j] < heap[j + 1]) || (heapType === 'min' && heap[j] > heap[j + 1]))) j++;
+            if ((heapType === 'max' && heap[i] >= heap[j]) || (heapType === 'min' && heap[i] <= heap[j])) break;
+            [heap[i], heap[j]] = [heap[j], heap[i]];
+            i = j;
+            updateTable();
+                    drawHeap();
+                    await new Promise(r => setTimeout(r, delay));
+                    highlightRow(hsize-1, 'green');
             }
             updateTable();
             drawHeap();
