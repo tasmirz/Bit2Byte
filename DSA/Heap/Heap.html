@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heap Simulation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --node-color: lightblue;
+            --node-stroke-color: bg-gray-100;
+            --edge-color: rgb(165, 137, 137);
+            --node-font-color: black;
+        }
+
+        .node {
+            stroke: var(--node-stroke-color);
+            stroke-width: 2px;
+            cursor: pointer;
+        }
+
+        .edge {
+            stroke: var(--edge-color);
+            stroke-width: 2px;
+            marker-end: url(#arrow);
+            cursor: pointer;
+        }
+
+        .hover-options {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid black;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center p-6">
+    <h1 class="text-2xl font-bold mb-4">Heap Simulation</h1>
+    <div id="creationPopup" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <select id="heapType" class="flex-1 p-2 rounded text-gray-800">
+                <option value="max">Max-Heap</option>
+                <option value="min">Min-Heap</option>
+            </select>
+            <input placeholder="Heap Size" type="number" id="heapSize" min="1" class="flex-1 p-2 rounded text-gray-800 ml-2">
+            <button onclick="createHeap()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+    <div class="bg-gray-800 text-white p-4 rounded-lg shadow-lg w-full max-w-md mb-6">
+        <div class="tabs flex mb-4">
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('add')">
+                <i class="fas fa-plus-circle"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('remove')">
+                <i class="fas fa-minus-circle"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2" onclick="showTab('decrease')">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+            <button class="tab-button p-2 bg-gray-600 rounded hover:bg-gray-700" onclick="resetHeap()">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+        <div id="add" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <input type="text" id="value" placeholder="Value" class="flex-1 p-2 rounded text-gray-800">
+            </div>
+            <div class="flex items-center mb-2">
+                <button onclick="insertItem()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+            </div>
+        </div>
+        <div id="remove" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <button onclick="deleteRoot()" class="flex-1 p-2 bg-gray-600 rounded hover:bg-gray-700 mr-2">
+                    <i class="fas fa-minus-circle"></i>
+                </button>
+            </div>
+        </div>
+        <div id="search" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <input type="text" id="searchValue" placeholder="Search Value" class="flex-1 p-2 rounded text-gray-800" style="flex-basis: 80%;">
+                <button onclick="searchItem()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700" style="flex-basis: 20%;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div id="resize" class="tab-content hidden">
+            <div class="flex items-center mb-2"></div>
+                <input type="number" id="newHeapSize" min="1" placeholder="New Heap Size" class="flex-1 p-2 rounded text-gray-800">
+                <button onclick="resizeHeap()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </button>
+            </div>
+        </div>
+        <div id="decrease" class="tab-content hidden">
+            <div class="flex items-center mb-2">
+                <input type="number" id="decreaseIndex" min="0" placeholder="Index" class="flex-1 p-2 rounded text-gray-800">
+                <input type="number" id="decreaseValue" placeholder="New Value" class="flex-1 p-2 rounded text-gray-800 ml-2">
+                <button onclick="decreaseKey()" class="ml-2 p-2 bg-gray-600 rounded hover:bg-gray-700">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+            </div>
+        </div>
+    </div>      
+
+    <table id="heapTable" class="w-full max-w-md bg-white shadow-lg rounded-lg mb-6 table-fixed">
+        <thead>
+            <tr class="bg-gray-800 text-white">
+                <th class="p-4 text-center">Index</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="heapRow" class="flex flex-row">
+            </tr>
+        </tbody>
+    </table>
+    <svg id="heapSvg" width="1200" height="600" class="border border-gray-400"></svg>
+    <script>
+        let heap = [];
+        let memoryLocation = 1000;
+        let heapType = 'max';
+        const highlightColors = {
+            yellow: '#fefcbf',
+            orange: '#fbd38d',
+            green: '#c6f6d5',
+            blue: '#bee3f8',
+            red: '#feb2b2'
+        };
+        const delay = 500; // Control the setTimeout delay
+        let size=0;
+        let  hsize=0;
+        function createHeap() {
+            size =parseInt( document.getElementById('heapSize').value);
+            heapType = document.getElementById('heapType').value;
+            const heapRow = document.getElementById('heapRow');
+            heapRow.innerHTML = '';
+            heap = new Array(size).fill(null);
+            for (let i = 0; i < heap.length; i++) {
+                const indexCell = heapRow.insertCell();
+                indexCell.innerText = i;
+                indexCell.classList.add('text-center', 'p-4');
+                
+                const valueCell = heapRow.insertCell();
+                valueCell.innerText = heap[i] !== null ? heap[i] : '';
+                valueCell.classList.add('text-center', 'p-4');
+            }
+            document.getElementById('creationPopup').style.display = 'none';
+            drawHeap();
+        }
+
+        function updateTable() {
+            const heapRow = document.getElementById('heapRow');
+            heapRow.innerHTML = '';
+            for (let i = 0; i < heap.length; i++) {
+                const cell = heapRow.insertCell();
+                cell.innerText = heap[i] !== null ? heap[i] : '';
+                cell.classList.add('text-center', 'p-4');
+            }
+        }
+
+        function drawHeap() {
+            const svg = document.getElementById('heapSvg');
+            svg.innerHTML = '<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#000" /></marker></defs>';
+            const levelHeight = 100;
+            const nodeRadius = 20;
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+
+            function drawNode(x, y, value) {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', nodeRadius);
+                circle.classList.add('node');
+                circle.setAttribute('fill', 'var(--node-color)');
+                svg.appendChild(circle);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', y + 5);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', 'var(--node-font-color)');
+                text.textContent = value;
+                svg.appendChild(text);
+            }
+
+            function drawEdge(x1, y1, x2, y2) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.classList.add('edge');
+                svg.appendChild(line);
+            }
+
+            function drawTree(index, x, y, level) {
+                if (index >= heap.length || heap[index] === null) return;
+                drawNode(x, y, heap[index]);
+                const leftChildIndex = 2 * index + 1;
+                const rightChildIndex = 2 * index + 2;
+                const childY = y + levelHeight;
+                const childXOffset = width / (2 ** (level + 2));
+                if (leftChildIndex < heap.length && heap[leftChildIndex] !== null) {
+                    drawEdge(x, y, x - childXOffset, childY);
+                    drawTree(leftChildIndex, x - childXOffset, childY, level + 1);
+                }
+                if (rightChildIndex < heap.length && heap[rightChildIndex] !== null) {
+                    drawEdge(x, y, x + childXOffset, childY);
+                    drawTree(rightChildIndex, x + childXOffset, childY, level + 1);
+                }
+            }
+
+            drawTree(0, width / 2, nodeRadius + 10, 0);
+        }
+
+        async function insertItem() {
+            if (hsize>=size){
+                alert('Heap is full');
+                return;
+            } 
+                
+            const value = parseInt(document.getElementById('value').value);
+            if (isNaN(value)) return;
+            heap[hsize++]=value;
+            let i = heap.length - 1;
+            if (heapType === 'max') {
+                while (i !== 0 && heap[Math.floor((i - 1) / 2)] < heap[i]) {
+                    [heap[i], heap[Math.floor((i - 1) / 2)]] = [heap[Math.floor((i - 1) / 2)], heap[i]];
+                    i = Math.floor((i - 1) / 2);
+                }
+            } else {
+                while (i !== 0 && heap[Math.floor((i - 1) / 2)] > heap[i]) {
+                    [heap[i], heap[Math.floor((i - 1) / 2)]] = [heap[Math.floor((i - 1) / 2)], heap[i]];
+                    i = Math.floor((i - 1) / 2);
+                }
+            }
+            updateTable();
+            drawHeap();
+            await new Promise(r => setTimeout(r, delay));
+            highlightRow(heap.length - 1, 'green');
+        }
+
+        async function deleteRoot() {
+            if (heap.length === 0) return;
+            heap[0] = heap.pop();
+            let i = 0;
+            while (2 * i + 1 < heap.length) {
+                let j = 2 * i + 1;
+                if (j + 1 < heap.length && ((heapType === 'max' && heap[j] < heap[j + 1]) || (heapType === 'min' && heap[j] > heap[j + 1]))) j++;
+                if ((heapType === 'max' && heap[i] >= heap[j]) || (heapType === 'min' && heap[i] <= heap[j])) break;
+                [heap[i], heap[j]] = [heap[j], heap[i]];
+                i = j;
+            }
+            updateTable();
+            drawHeap();
+            await new Promise(r => setTimeout(r, delay));
+            highlightRow(0, 'red');
+        }
+
+        async function searchItem() {
+            const target = parseInt(document.getElementById('searchValue').value);
+            if (isNaN(target)) return;
+            let found = false;
+            for (let i = 0; i < heap.length; i++) {
+                if (heap[i] === target) {
+                    highlightRow(i, 'blue');
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) alert('Value not found in the heap');
+        }
+
+        function resizeHeap() {
+            const newSize = parseInt(document.getElementById('newHeapSize').value);
+            if (isNaN(newSize) || newSize < 1) return;
+            heap.length = newSize;
+            updateTable();
+            drawHeap();
+            alert(`Heap resized to ${newSize}`);
+        }
+
+        async function decreaseKey() {
+            const index = parseInt(document.getElementById('decreaseIndex').value);
+            const newValue = parseInt(document.getElementById('decreaseValue').value);
+            if (isNaN(index) || isNaN(newValue) || index < 0 || index >= heap.length || heap[index] === null) return;
+            heap[index] = newValue;
+            let i = index;
+            if (heapType === 'max') {
+                while (i !== 0 && heap[Math.floor((i - 1) / 2)] < heap[i]) {
+                    [heap[i], heap[Math.floor((i - 1) / 2)]] = [heap[Math.floor((i - 1) / 2)], heap[i]];
+                    i = Math.floor((i - 1) / 2);
+                }
+            } else {
+                while (i !== 0 && heap[Math.floor((i - 1) / 2)] > heap[i]) {
+                    [heap[i], heap[Math.floor((i - 1) / 2)]] = [heap[Math.floor((i - 1) / 2)], heap[i]];
+                    i = Math.floor((i - 1) / 2);
+                }
+            }
+            updateTable();
+            drawHeap();
+            await new Promise(r => setTimeout(r, delay));
+            highlightRow(index, 'yellow');
+        }
+
+        function highlightRow(pos, color) {
+            const heapRow = document.getElementById('heapRow');
+            const cell = heapRow.cells[pos];
+            cell.style.transition = "background-color 0.5s ease";
+            cell.style.backgroundColor = highlightColors[color];
+            setTimeout(() => {
+                cell.style.backgroundColor = "";
+            }, delay);
+        }
+
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+
+        function resetHeap() {
+            document.getElementById('creationPopup').style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>
