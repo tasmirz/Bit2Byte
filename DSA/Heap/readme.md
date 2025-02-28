@@ -24,7 +24,7 @@ Heap has two properties:
    - **Max-Heap**: In a max-heap, the value of each node is greater than or equal to the values of its children. The highest value is at the root.
    - **Min-Heap**: In a min-heap, the value of each node is less than or equal to the values of its children. The lowest value is at the root.
 
-**To perform the operations on the heap these properties must be maintained.** These properties ensures order and structure of the heap. Without these preconditons met these operations will not work.
+**To perform the operations on the heap these properties must be maintained.** These properties ensures order and structure of the heap. Without these preconditons met these operations will not work. These properties allow inductive reasoning to be applied to the heap.
 
 ## Types of Heap
 
